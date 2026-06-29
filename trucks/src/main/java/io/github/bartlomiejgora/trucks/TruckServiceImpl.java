@@ -9,7 +9,12 @@ class TruckServiceImpl implements TruckService {
     private final TruckRepository truckRepository;
 
     @Override
-    public void saveTruck(final Truck truck) {
-        truckRepository.save(truck);
+    public void addTruck(final Truck truck) {
+        truckRepository.save(TruckDocument.of(truck));
+    }
+
+    @Override
+    public void update(String id, Truck truck) {
+
     }
 }
