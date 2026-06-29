@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @RequiredArgsConstructor
 @Getter
-class Truck {
+public class Truck {
     private final Vendor vendor;
     @Setter
     private String plateNumber;
