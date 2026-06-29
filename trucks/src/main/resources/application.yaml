@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: trucks
+  mongodb:
+    uri: ${MONGO_DB_URL}
+    database: trucks
