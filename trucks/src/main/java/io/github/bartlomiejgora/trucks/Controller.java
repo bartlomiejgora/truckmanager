@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,7 +60,7 @@ class Controller {
             )
     )
     @PostMapping("/truck")
-    void createTruck(@RequestBody Truck truck) {
+    void createTruck(@Valid @RequestBody Truck truck) {
         truckService.addTruck(truck);
     }
 

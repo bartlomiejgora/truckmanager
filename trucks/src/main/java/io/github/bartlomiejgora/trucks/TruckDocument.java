@@ -1,7 +1,10 @@
 package io.github.bartlomiejgora.trucks;
 
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
@@ -15,6 +18,7 @@ class TruckDocument {
     @MongoId
     private String uuid;
     private Vendor vendor;
+    private String vin;
     @Setter
     private String plateNumber;
     @Setter
@@ -22,6 +26,7 @@ class TruckDocument {
 
     static TruckDocument of(Truck other) {
         return new TruckDocument(UUID.randomUUID().toString(), other.getVendor(), other.getPlateNumber(),
+                other.getVin(),
                 other.getMileage());
     }
 
