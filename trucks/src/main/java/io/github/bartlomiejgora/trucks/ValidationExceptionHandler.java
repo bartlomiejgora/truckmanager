@@ -1,7 +1,7 @@
 package io.github.bartlomiejgora.trucks;
 
-import jakarta.validation.ValidationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class ValidationExceptionHandler {
 
     @ExceptionHandler
-    ResponseEntity<String> handleException(Exception exception){
+    ResponseEntity<String> handleException(MethodArgumentNotValidException exception) {
         return ResponseEntity.badRequest().body(exception.getMessage());
 
     }

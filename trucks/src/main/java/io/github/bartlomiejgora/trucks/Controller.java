@@ -82,9 +82,14 @@ class Controller {
                     }
             )
     )
-    @PatchMapping("/truck/{id}")
-    void updateTruck(@RequestBody Truck truck, @PathVariable String id) {
-        truckService.update(id, truck);
+    @PatchMapping("/truck")
+    void updateTruck(@Valid @RequestBody Truck truck) {
+        truckService.update(truck);
 
+    }
+
+    @GetMapping("truck/{vin}")
+    Truck getTruck(@PathVariable String vin){
+        return null;
     }
 }

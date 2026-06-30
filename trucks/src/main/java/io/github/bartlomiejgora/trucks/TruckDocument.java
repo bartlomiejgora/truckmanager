@@ -25,8 +25,8 @@ class TruckDocument {
     private double mileage;
 
     static TruckDocument of(Truck other) {
-        return new TruckDocument(UUID.randomUUID().toString(), other.getVendor(), other.getPlateNumber(),
-                other.getVin(),
+        return new TruckDocument(UUID.randomUUID().toString(), other.getVendor(), other.getVin(),
+                other.getPlateNumber(),
                 other.getMileage());
     }
 

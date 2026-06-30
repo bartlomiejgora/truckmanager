@@ -4,5 +4,7 @@ public interface TruckService {
 
     void addTruck(Truck truck);
 
-    void update(String id, Truck truck);
+    void update(Truck truck);
+
+    Truck getOne(String vin);
 }
