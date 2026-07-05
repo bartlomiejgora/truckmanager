@@ -1,6 +1,10 @@
 package io.github.bartlomiejgora.trucks;
 
-interface TruckService {
+public interface TruckService {
 
-    void saveTruck(Truck truck);
+    void addTruck(Truck truck);
+
+    void update(Truck truck);
+
+    Truck getOne(String vin);
 }
