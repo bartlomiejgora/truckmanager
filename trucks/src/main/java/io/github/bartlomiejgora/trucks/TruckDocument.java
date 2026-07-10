@@ -22,7 +22,7 @@ class TruckDocument {
     @Setter
     private String plateNumber;
     @Setter
-    private double mileage;
+    private Double mileage;
 
     static TruckDocument of(Truck other) {
         return new TruckDocument(UUID.randomUUID().toString(), other.getVendor(), other.getVin(),
