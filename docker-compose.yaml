@@ -18,3 +18,14 @@ services:
       ME_CONFIG_BASICAUTH_ENABLED: true
       ME_CONFIG_BASICAUTH_USERNAME: test
       ME_CONFIG_BASICAUTH_PASSWORD: test
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: trucksdb
+    ports:
+      - 5432:5432
+ 
