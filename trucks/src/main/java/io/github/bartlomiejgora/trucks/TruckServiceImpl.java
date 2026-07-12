@@ -1,6 +1,7 @@
 package io.github.bartlomiejgora.trucks;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +19,12 @@ class TruckServiceImpl implements TruckService {
     @Transactional
     public void update(Truck truck) {
         var foundTruck = truckRepository.findFirstByVin(truck.getVin());
-        foundTruck.setMileage(truck.getMileage());
-        foundTruck.setPlateNumber(truck.getPlateNumber());
+        if (truck.getMileage() != null) {
+            foundTruck.setMileage(truck.getMileage());
+        }
+        if (StringUtils.isNotBlank(truck.getPlateNumber())){
+            foundTruck.setPlateNumber(truck.getPlateNumber());
+        }
         truckRepository.save(foundTruck);
     }
 

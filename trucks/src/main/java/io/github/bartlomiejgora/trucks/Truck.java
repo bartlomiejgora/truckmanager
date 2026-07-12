@@ -23,6 +23,6 @@ public class Truck {
     private String plateNumber;
     @Setter
     @Schema(description = "Total mileage in kilometers", example = "150000.5")
-    private double mileage;
+    private Double mileage;
 
 }

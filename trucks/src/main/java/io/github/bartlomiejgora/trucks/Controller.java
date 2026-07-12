@@ -1,11 +1,15 @@
 package io.github.bartlomiejgora.trucks;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -88,8 +92,46 @@ class Controller {
 
     }
 
+    @Operation(
+            summary = "Get a truck by VIN number",
+            description = "Returns a single truck matching the provided VIN number."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Truck found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Truck.class),
+                            examples = @ExampleObject(
+                                    name = "Truck response",
+                                    value = """
+                                            {
+                                              "vendor": "VOLVO",
+                                              "vin": "YV2RT40A5XA123456",
+                                              "plateNumber": "WA 12345",
+                                              "mileage": 150000.5
+                                            }"""
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Truck not found",
+                    content = @Content
+            )
+    })
     @GetMapping("truck/{vin}")
-    Truck getTruck(@PathVariable String vin){
-        return null;
+    ResponseEntity<Truck> getTruck(@Parameter(
+            description = "VIN number of the truck",
+            example = "YV2RT40A5XA123456",
+            required = true
+    )
+                                   @PathVariable String vin) {
+        var truck = truckService.getOne(vin);
+        if (truck != null) {
+            return ResponseEntity.ok(truck);
+        }
+        return ResponseEntity.notFound().build();
     }
 }
