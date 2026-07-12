@@ -1,10 +1,9 @@
 package io.github.bartlomiejgora.trucks;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepoTest extends AbstractTestBase {
 
@@ -13,9 +12,12 @@ public class RepoTest extends AbstractTestBase {
 
     @Test
     void testDB() {
+
         //given
         var vin = "01234567890";
-        Truck truck = new Truck(Vendor.IVECO, vin);
+        Truck truck = new Truck();
+        truck.setVendor(Vendor.IVECO);
+        truck.setVin(vin);
         truck.setPlateNumber("SL 90890J");
         var document = TruckDocument.of(truck);
 
@@ -23,12 +25,10 @@ public class RepoTest extends AbstractTestBase {
         truckRepository.save(document);
 
         //then
-
         var result = truckRepository.findById(document.getUuid());
         assertThat(result).isNotEmpty();
         var actual = result.get();
         assertThat(actual.getUuid()).isEqualTo(document.getUuid());
-
 
     }
 }
