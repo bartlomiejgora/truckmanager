@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 class Controller {
@@ -129,6 +131,44 @@ class Controller {
     )
                                    @PathVariable String vin) {
         var truck = truckService.getOne(vin);
+        if (truck != null) {
+            return ResponseEntity.ok(truck);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @Operation(
+            summary = "Remove Driver from Truck"
+
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Truck found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Truck.class),
+                            examples = @ExampleObject(
+                                    name = "Truck response",
+                                    value = """
+                                            {
+                                              "vendor": "VOLVO",
+                                              "vin": "YV2RT40A5XA123456",
+                                              "plateNumber": "WA 12345",
+                                              "mileage": 150000.5
+                                            }"""
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Truck not found",
+                    content = @Content
+            )
+    })
+    @DeleteMapping("trucks/{id}/driver")
+    ResponseEntity<Truck> deleteDriver(@Parameter(description = "Id of driver", required = true) @PathVariable UUID id) {
+        var truck = truckService.removeDriver(id);
         if (truck != null) {
             return ResponseEntity.ok(truck);
         }
