@@ -7,6 +7,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static io.github.bartlomiejgora.trucks.TestJwts.admin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,6 +37,7 @@ class TruckControllerTest extends AbstractTestBase {
 
         // when
         mockMvc.perform(post("/truck")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk());
@@ -53,6 +55,7 @@ class TruckControllerTest extends AbstractTestBase {
 
         // when / then
         mockMvc.perform(post("/truck")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk());
@@ -67,6 +70,7 @@ class TruckControllerTest extends AbstractTestBase {
 
         // when / then
         mockMvc.perform(post("/truck")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest());
@@ -81,6 +85,7 @@ class TruckControllerTest extends AbstractTestBase {
 
         // when / then
         mockMvc.perform(post("/truck")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest());
@@ -102,6 +107,7 @@ class TruckControllerTest extends AbstractTestBase {
 
         // when
         mockMvc.perform(patch("/truck")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk());
@@ -127,6 +133,7 @@ class TruckControllerTest extends AbstractTestBase {
 
         // when
         mockMvc.perform(patch("/truck")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk());
@@ -147,6 +154,7 @@ class TruckControllerTest extends AbstractTestBase {
 
         // when / then
         mockMvc.perform(patch("/truck")
+                        .with(admin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest());
@@ -164,7 +172,7 @@ class TruckControllerTest extends AbstractTestBase {
         truckRepository.save(TruckDocument.of(truck));
 
         // when / then
-        mockMvc.perform(get("/truck/YV2RT40A5XA123456"))
+        mockMvc.perform(get("/truck/YV2RT40A5XA123456").with(admin()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.vin").value("YV2RT40A5XA123456"))
                 .andExpect(jsonPath("$.vendor").value("VOLVO"));
@@ -172,7 +180,7 @@ class TruckControllerTest extends AbstractTestBase {
 
     @Test
     void getTruck_nonExistingVin_returns404() throws Exception {
-        mockMvc.perform(get("/truck/NONEXISTENTVIN12345"))
+        mockMvc.perform(get("/truck/NONEXISTENTVIN12345").with(admin()))
                 .andExpect(status().isNotFound());
     }
 }

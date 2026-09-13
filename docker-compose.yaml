@@ -28,4 +28,39 @@ services:
       POSTGRES_DB: trucksdb
     ports:
       - 5432:5432
- 
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d trucksdb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7
+    restart: always
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloakdb
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: example
+      # Issuer musi byc taki sam, jak adres, pod ktorym aplikacje widza Keycloaka.
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
+      KC_HEALTH_ENABLED: true
+    ports:
+      - 8180:8080
+    volumes:
+      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

@@ -1,0 +1,121 @@
+{
+  "realm": "truckmanager",
+  "displayName": "Truckmanager",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 1800,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrator systemu - pelny dostep do wszystkich zasobow"
+      },
+      {
+        "name": "KIEROWCA",
+        "description": "Kierowca - dostep tylko do odczytu danych pojazdow i wlasnych danych"
+      },
+      {
+        "name": "WLASCICIEL_FIRMY",
+        "description": "Wlasciciel firmy - zarzadzanie flota i kierowcami swojej firmy"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "truckmanager-api",
+      "name": "Truckmanager API (resource server)",
+      "description": "Reprezentacja serwisow trucks i drivers - waliduja tokeny, nie loguja uzytkownikow",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "truckmanager-cli",
+      "name": "Truckmanager CLI / Swagger UI",
+      "description": "Klient publiczny do pobierania tokenow (curl, Postman, Swagger UI)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "http://localhost:8081/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080",
+        "http://localhost:8081"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8080/*##http://localhost:8081/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@truckmanager.local",
+      "firstName": "Anna",
+      "lastName": "Adminowska",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ]
+    },
+    {
+      "username": "kierowca",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "kierowca@truckmanager.local",
+      "firstName": "Krzysztof",
+      "lastName": "Kierowca",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kierowca",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "KIEROWCA"
+      ]
+    },
+    {
+      "username": "wlasciciel",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "wlasciciel@truckmanager.local",
+      "firstName": "Wojciech",
+      "lastName": "Wlascicielski",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "wlasciciel",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "WLASCICIEL_FIRMY"
+      ]
+    }
+  ]
+}

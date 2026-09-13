@@ -1,6 +1,6 @@
 spring:
   application:
-    name: trucks
+    name: drivers
   security:
     oauth2:
       resourceserver:
