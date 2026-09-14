@@ -15,24 +15,26 @@ W ramach projektu będę uczył się nowych rzeczy, poszukiwanych na rynku pracy
 
 ---
 
-### 2. Uruchomienie infrastruktury (Docker)
-W katalogu głównym projektu uruchom kontenery bazodanowe oraz Keycloak:
+### 2. Uruchomienie infrastruktury i aplikacji (Docker)
+W katalogu głównym projektu możesz uruchomić całe środowisko (bazy danych, Keycloak oraz obie mikrousługi) za pomocą Docker Compose:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 W ramach `docker-compose.yaml` uruchamiane są następujące usługi:
+- **trucks** (mikrousługa zarządzania pojazdami): `http://localhost:8080`
+- **drivers** (mikrousługa zarządzania kierowcami): `http://localhost:8081`
 - **Keycloak** (OAuth2 / OIDC): `http://localhost:8180` (realm `truckmanager` jest automatycznie importowany przy starcie)
 - **PostgreSQL**: `localhost:5432` (bazy `trucksdb` oraz `keycloakdb`, użytkownik: `root`, hasło: `example`)
 - **MongoDB**: `localhost:27017` (użytkownik: `root`, hasło: `example`)
-- **Mongo Express** (panel WWW do MongoDB): `http://localhost:8081` (login: `test`, hasło: `test`)
+- **Mongo Express** (panel WWW do MongoDB): `http://localhost:8082` (login: `test`, hasło: `test`)
 
 ---
 
-### 3. Uruchomienie serwisów Spring Boot
+### 3. Uruchomienie serwisów lokalnie (Spring Boot)
 
-Aplikacja składa się z dwóch mikrousług:
+Alternatywnie możesz uruchomić same bazy danych i Keycloak w Dockerze, a serwisy odpalić lokalnie:
 
 #### Serwis `trucks` (port `8080`)
 Zarządza danymi pojazdów (MongoDB).
@@ -43,6 +45,7 @@ mvn spring-boot:run
 *Domyślne zmienne środowiskowe:*
 - `MONGO_DB_URL=mongodb://root:example@localhost:27017/trucks?authSource=admin`
 - `KEYCLOAK_ISSUER_URI=http://localhost:8180/realms/truckmanager`
+- `KEYCLOAK_JWK_SET_URI=http://localhost:8180/realms/truckmanager/protocol/openid-connect/certs`
 
 #### Serwis `drivers` (port `8081`)
 Zarządza danymi kierowców (PostgreSQL + Flyway).
@@ -50,6 +53,12 @@ Zarządza danymi kierowców (PostgreSQL + Flyway).
 # W katalogu drivers/
 mvn spring-boot:run
 ```
+*Domyślne zmienne środowiskowe:*
+- `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/trucksdb`
+- `SPRING_DATASOURCE_USERNAME=root`
+- `SPRING_DATASOURCE_PASSWORD=example`
+- `KEYCLOAK_ISSUER_URI=http://localhost:8180/realms/truckmanager`
+- `KEYCLOAK_JWK_SET_URI=http://localhost:8180/realms/truckmanager/protocol/openid-connect/certs`
 
 ---
 
@@ -97,17 +106,88 @@ W odpowiedzi otrzymasz obiekt JSON zawierający pole `access_token`:
 
 ---
 
-### 3. Autoryzacja w zapytaniach do API
+### 3. Komunikacja z API aplikacji
 
-#### cURL / HTTP Request:
-Wysyłając zapytania do endpointów API, przekaż token w nagłówku `Authorization`:
-```bash
-curl -X GET "http://localhost:8080/trucks" \
-  -H "Authorization: Bearer <TUTAJ_WKLEJ_ACCESS_TOKEN>"
-```
+Obie mikrousługi zabezpieczone są protokołem OAuth2 / JWT. W każdym zapytaniu do chronionych endpointów należy przekazać pobrany token JWT w nagłówku `Authorization: Bearer <TOKEN>`.
 
-#### Swagger UI (serwis `trucks`):
-1. Otwórz w przeglądarce: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+---
+
+#### 🚛 Serwis `trucks` (Port `8080`)
+
+Zarządza danymi pojazdów flotowych.
+
+##### 1. Interfejs Swagger UI (Dokumentacja interaktywna)
+- **URL Swagger UI:** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **Specyfikacja OpenAPI JSON:** [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+*Autoryzacja w Swagger UI:*
+1. Otwórz Swagger UI w przeglądarce.
 2. Kliknij zielony przycisk **Authorize** w prawym górnym rogu.
-3. Wklej pobrany token JWT (sam token lub z prefiksem `Bearer ` w zależności od formatu) i kliknij **Authorize**.
-4. Wykonuj autoryzowane zapytania bezpośrednio z poziomu interfejsu Swagger.
+3. Wklej uzyskany z Keycloaka `access_token` i kliknij **Authorize**.
+4. Testuj endpointy bezpośrednio z poziomu przeglądarki.
+
+##### 2. Przykłady zapytań cURL
+
+- **Pobranie danych pojazdu po numerze VIN (GET):**
+  *(Wymagana rola: `ADMIN`, `WLASCICIEL_FIRMY` lub `KIEROWCA`)*
+  ```bash
+  curl -X GET "http://localhost:8080/truck/YV2RT40A5XA123456" \
+    -H "Authorization: Bearer <ACCESS_TOKEN>"
+  ```
+
+- **Dodanie nowego pojazdu (POST):**
+  *(Wymagana rola: `ADMIN` lub `WLASCICIEL_FIRMY`)*
+  ```bash
+  curl -X POST "http://localhost:8080/truck" \
+    -H "Authorization: Bearer <ACCESS_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "vendor": "VOLVO",
+      "vin": "YV2RT40A5XA123456",
+      "plateNumber": "WA 12345",
+      "mileage": 150000.5
+    }'
+  ```
+
+- **Aktualizacja danych pojazdu (PATCH):**
+  *(Wymagana rola: `ADMIN` lub `WLASCICIEL_FIRMY`)*
+  ```bash
+  curl -X PATCH "http://localhost:8080/truck" \
+    -H "Authorization: Bearer <ACCESS_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "vendor": "VOLVO",
+      "vin": "YV2RT40A5XA123456",
+      "plateNumber": "WA 54321",
+      "mileage": 160000.0
+    }'
+  ```
+
+---
+
+#### 👤 Serwis `drivers` (Port `8081`)
+
+Zarządza danymi kierowców i uprawnieniami (prawami jazdy).
+
+##### Przykłady zapytań cURL
+
+- **Odczyt danych kierowców (GET):**
+  *(Wymagana rola: `ADMIN`, `WLASCICIEL_FIRMY` lub `KIEROWCA`)*
+  ```bash
+  curl -X GET "http://localhost:8081/driver" \
+    -H "Authorization: Bearer <ACCESS_TOKEN>"
+  ```
+
+- **Operacje zapisu / edycji danych kierowców (POST/PUT/DELETE):**
+  *(Wymagana rola: `ADMIN` lub `WLASCICIEL_FIRMY`)*
+  ```bash
+  curl -X POST "http://localhost:8081/driver" \
+    -H "Authorization: Bearer <ACCESS_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{ ... }'
+  ```
+
+- **Sprawdzenie stanu aplikacji (Actuator Health - publiczny):**
+  ```bash
+  curl -X GET "http://localhost:8081/actuator/health"
+  ```

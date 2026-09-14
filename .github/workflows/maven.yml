@@ -1,41 +1,164 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+  ```yaml
+  name: Java CI with Maven
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+  on:
+    push:
+      branches: ["master"]
+    pull_request:
+      branches: ["master"]
 
-name: Java CI with Maven
+  permissions:
+    contents: read
 
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  jobs:
 
-jobs:
-  build:
+    # ============================================================
+    # BUILD + OWASP DEPENDENCY CHECK
+    # ============================================================
+    build-and-security-scan:
 
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        project: ['drivers', 'trucks']
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 25
-      uses: actions/setup-java@v4
-      with:
-        java-version: '25'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build ${{matrix.project}} with Maven
-      run: mvn -B clean package --file ${{matrix.project}}/pom.xml
+      name: Build & Dependency Scan - ${{ matrix.project }}
 
-    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
-    - name: Update dependency graph
-      uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
-      with:
-        directory: ${{matrix.project}}
+      runs-on: ubuntu-latest
+
+      strategy:
+        fail-fast: false
+        matrix:
+          project: ["drivers", "trucks"]
+
+      steps:
+
+        # --------------------------------------------------------
+        # Checkout
+        # --------------------------------------------------------
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        # --------------------------------------------------------
+        # Java
+        # --------------------------------------------------------
+        - name: Set up JDK 25
+          uses: actions/setup-java@v4
+          with:
+            java-version: "25"
+            distribution: "temurin"
+            cache: maven
+
+        # --------------------------------------------------------
+        # Build + Tests
+        # --------------------------------------------------------
+        - name: Build ${{ matrix.project }} with Maven
+          run: |
+            mvn -B clean package \
+              --file ${{ matrix.project }}/pom.xml
+
+        # --------------------------------------------------------
+        # OWASP Dependency-Check
+        #
+        # FAIL:
+        #   CVSS >= 7.0
+        #
+        # PASS:
+        #   brak podatności >= 7.0
+        # --------------------------------------------------------
+        - name: OWASP Dependency-Check - ${{ matrix.project }}
+          uses: dependency-check/Dependency-Check_Action@main
+          with:
+            project: "${{ matrix.project }}"
+            path: "${{ matrix.project }}"
+            format: "HTML"
+            out: "reports/${{ matrix.project }}"
+            args: >
+              --failOnCVSS 7
+              --scan "${{ matrix.project }}"
+              --disableNodeAudit
+              --disableYarnAudit
+
+        # --------------------------------------------------------
+        # Upload OWASP report
+        #
+        # Raport zostanie zachowany nawet jeżeli Dependency-Check
+        # zakończy się błędem.
+        # --------------------------------------------------------
+        - name: Upload Dependency-Check report
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: dependency-check-${{ matrix.project }}
+            path: reports/${{ matrix.project }}/
+            if-no-files-found: warn
+
+        # --------------------------------------------------------
+        # GitHub Dependency Graph
+        # --------------------------------------------------------
+        - name: Update dependency graph
+          uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+          with:
+            directory: ${{ matrix.project }}
+
+
+    # ============================================================
+    # CODEQL
+    # ============================================================
+    codeql:
+
+      name: CodeQL - Java
+
+      runs-on: ubuntu-latest
+
+      permissions:
+        contents: read
+        security-events: write
+        actions: read
+
+      steps:
+
+        # --------------------------------------------------------
+        # Checkout
+        # --------------------------------------------------------
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        # --------------------------------------------------------
+        # Java
+        # --------------------------------------------------------
+        - name: Set up JDK 25
+          uses: actions/setup-java@v4
+          with:
+            java-version: "25"
+            distribution: "temurin"
+            cache: maven
+
+        # --------------------------------------------------------
+        # Initialize CodeQL
+        # --------------------------------------------------------
+        - name: Initialize CodeQL
+          uses: github/codeql-action/init@v4
+          with:
+            languages: java
+            queries: security-extended
+
+        # --------------------------------------------------------
+        # Build both Maven projects
+        #
+        # CodeQL observes the compilation and analyzes the
+        # resulting Java code.
+        # --------------------------------------------------------
+        - name: Build drivers
+          run: |
+            mvn -B clean package \
+              --file drivers/pom.xml
+
+        - name: Build trucks
+          run: |
+            mvn -B clean package \
+              --file trucks/pom.xml
+
+        # --------------------------------------------------------
+        # CodeQL Analysis
+        # --------------------------------------------------------
+        - name: Perform CodeQL Analysis
+          uses: github/codeql-action/analyze@v4
+          with:
+            category: "/language:java"
+    ```
