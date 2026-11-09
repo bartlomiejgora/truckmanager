@@ -62,7 +62,7 @@ class TruckControllerTest extends AbstractTestBase {
     }
 
     @Test
-    void createTruck_withMissingVendor_returns400() throws Exception {
+    void createTruckWithMissingVendorReturns400() throws Exception {
         // given
         var payload = """
                 {"vin": "YV2RT40A5XA123456"}
@@ -77,7 +77,7 @@ class TruckControllerTest extends AbstractTestBase {
     }
 
     @Test
-    void createTruck_withBlankVin_returns400() throws Exception {
+    void createTruckWithBlankVinReturns400() throws Exception {
         // given
         var payload = """
                 {"vendor": "VOLVO", "vin": ""}
@@ -94,7 +94,7 @@ class TruckControllerTest extends AbstractTestBase {
     // PATCH /truck
 
     @Test
-    void updateTruck_updatesMileage_returns200() throws Exception {
+    void updateTruckUpdatesMileageReturns200() throws Exception {
         // given
         var truck = new Truck();
         truck.setVendor(Vendor.MERCEDES);
@@ -120,7 +120,7 @@ class TruckControllerTest extends AbstractTestBase {
     }
 
     @Test
-    void updateTruck_updatesPlateNumber_returns200() throws Exception {
+    void updateTruckUpdatesPlateNumberReturns200() throws Exception {
         // given
         var truck = new Truck();
         truck.setVendor(Vendor.IVECO);
@@ -146,7 +146,7 @@ class TruckControllerTest extends AbstractTestBase {
     }
 
     @Test
-    void updateTruck_withBlankVin_returns400() throws Exception {
+    void updateTruckWithBlankVinReturns400() throws Exception {
         // given
         var payload = """
                 {"vendor": "RENAULT", "vin": ""}
@@ -163,7 +163,7 @@ class TruckControllerTest extends AbstractTestBase {
     // GET /truck/{vin}
 
     @Test
-    void getTruck_existingVin_returns200WithBody() throws Exception {
+    void getTruckExistingVinReturns200WithBody() throws Exception {
         // given
         var truck = new Truck();
         truck.setVendor(Vendor.VOLVO);
@@ -179,7 +179,7 @@ class TruckControllerTest extends AbstractTestBase {
     }
 
     @Test
-    void getTruck_nonExistingVin_returns404() throws Exception {
+    void getTruckNonExistingVinReturns404() throws Exception {
         mockMvc.perform(get("/truck/NONEXISTENTVIN12345").with(admin()))
                 .andExpect(status().isNotFound());
     }
